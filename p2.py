@@ -6,6 +6,7 @@ import plotly.graph_objects as go
 import plotly.express as px
 from datetime import datetime
 from plotly.subplots import make_subplots
+import yfinance as yf
 
 # 페이지 설정
 st.set_page_config(layout="wide", page_title="주가 예측 서비스")
@@ -13,8 +14,8 @@ st.set_page_config(layout="wide", page_title="주가 예측 서비스")
 # 메뉴 옵션
 menu_options = [
     {"icon": "house", "label": "홈"},
-    {"icon": "graph-up", "label": "모델 설명"},
-    {"icon": "database", "label": "데이터셋 설명"},
+    {"icon": "graph-up", "label": "모델 소개"},
+    {"icon": "database", "label": "데이터셋 소개"},
     {"icon": "lightning", "label": "예측"}
 ]
 
@@ -46,18 +47,9 @@ sectors = {
 def home():
     st.title("주가 예측 서비스")
     st.write("""
-    ## 인공지능 기반 주식 시장 분석 및 예측 플랫폼
+    ## 딥러닝 기반 주식 가격 예측 플랫폼
     
-    최신 머신러닝 기술을 활용하여 주식 시장의 동향을 분석하고 예측합니다. 
-    다양한 섹터와 종목에 대한 심층 분석을 제공하며, 고급 GRU 모델을 사용하여 높은 정확도의 예측을 제공합니다.
-    """)
-
-    st.markdown("""
-    ### 🌟 주요 기능
-    - 주가 데이터 분석
-    - 섹터별, 종목별 분석
-    - GRU 모델 기반 정확한 주가 예측
-    - 사용자 친화적 인터페이스
+    딥러닝 기술을 활용하여 주식 시장의 동향을 분석하고 예측합니다. 
     """)
 
     # 최근 시장 동향 차트
@@ -75,14 +67,15 @@ def model_explanation():
     st.title("GRU 모델 설명")
     
     st.write("""
-    GRU(Gated Recurrent Unit)는 순환 신경망(RNN)의 변형으로, 시계열 데이터 처리에 탁월한 성능을 보입니다.
-    특히 장기 의존성 문제를 효과적으로 해결하여 복잡한 시퀀스 데이터 분석에 적합합니다.
+    GRU(Gated Recurrent Unit)는 순환 신경망(RNN)의 변형으로, 
+    시계열 데이터 처리에 탁월한 성능을 보입니다.
+    특히 장기 의존성 문제를 효과적으로 해결하여 
+    복잡한 시퀀스 데이터 분석에 적합합니다.
     """)
     
     # GRU 구조 설명
     st.header("GRU의 구조")
-    
-    col1, col2 = st.columns([1, 1])
+    col1, col2 = st.columns([1, 2])
     
     with col1:
         st.write("""
@@ -93,18 +86,18 @@ def model_explanation():
         """)
     
     with col2:
-        # GRU 셀 구조 다이어그램 (SVG로 변경)
+        # GRU 셀 구조 다이어그램 (SVG)
         gru_cell_svg = """
-        <svg width="300" height="200" xmlns="http://www.w3.org/2000/svg">
-            <rect x="10" y="10" width="280" height="180" fill="lightblue" opacity="0.3" stroke="royalblue" stroke-width="2"/>
-            <circle cx="150" cy="100" r="60" fill="lavender" stroke="purple" stroke-width="2"/>
-            <text x="150" y="105" text-anchor="middle" fill="purple">Hidden State</text>
-            <rect x="20" y="20" width="80" height="40" fill="lightgreen" stroke="green" stroke-width="2"/>
-            <text x="60" y="45" text-anchor="middle" fill="green">Update Gate</text>
-            <rect x="20" y="140" width="80" height="40" fill="lightpink" stroke="red" stroke-width="2"/>
-            <text x="60" y="165" text-anchor="middle" fill="red">Reset Gate</text>
-            <line x1="100" y1="40" x2="130" y2="70" stroke="black" stroke-width="2" marker-end="url(#arrowhead)"/>
-            <line x1="100" y1="160" x2="130" y2="130" stroke="black" stroke-width="2" marker-end="url(#arrowhead)"/>
+        <svg width="100%" height="250" xmlns="http://www.w3.org/2000/svg">
+            <rect x="10" y="10" width="95%" height="230" fill="lightblue" opacity="0.3" stroke="royalblue" stroke-width="2"/>
+            <circle cx="50%" cy="50%" r="80" fill="lavender" stroke="purple" stroke-width="2"/>
+            <text x="50%" y="50%" text-anchor="middle" fill="purple" font-size="16">Hidden State</text>
+            <rect x="20" y="20" width="120" height="50" fill="lightgreen" stroke="green" stroke-width="2"/>
+            <text x="80" y="50" text-anchor="middle" fill="green" font-size="14">Update Gate</text>
+            <rect x="20" y="180" width="120" height="50" fill="lightpink" stroke="red" stroke-width="2"/>
+            <text x="80" y="210" text-anchor="middle" fill="red" font-size="14">Reset Gate</text>
+            <line x1="140" y1="45" x2="200" y2="90" stroke="black" stroke-width="2" marker-end="url(#arrowhead)"/>
+            <line x1="140" y1="205" x2="200" y2="160" stroke="black" stroke-width="2" marker-end="url(#arrowhead)"/>
             <defs>
                 <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="0" refY="3.5" orient="auto">
                     <polygon points="0 0, 10 3.5, 0 7" />
@@ -112,85 +105,67 @@ def model_explanation():
             </defs>
         </svg>
         """
-        st.components.v1.html(gru_cell_svg, width=300, height=200)
+        st.components.v1.html(gru_cell_svg, height=250)
     
-    # GRU의 작동 원리
-    st.subheader("GRU의 작동 원리")
+    # 모델 비교 (RMSE 값만 사용)
+    st.header("모델 성능 비교")
     st.write("""
-    GRU는 각 시점에서 다음과 같은 과정을 거칩니다:
-    1. Update Gate와 Reset Gate 계산
-    2. 후보 Hidden State 생성
-    3. 최종 Hidden State 갱신
+    다양한 시계열 예측 모델의 Test RMSE를 비교해 보겠습니다. 
+    RMSE(Root Mean Square Error)는 예측값과 실제값의 차이를 나타내는 지표로, 
+    낮을수록 예측 정확도가 높음을 의미합니다.
     """)
     
-    # Gate 설명
-    st.subheader("Gate의 역할")
-    gate_explanation = """
-    <style>
-    .gate-box {
-        background-color: #f0f0f0;
-        border-radius: 10px;
-        padding: 15px;
-        margin: 10px 0;
-    }
-    .gate-title {
-        font-weight: bold;
-        color: #333;
-    }
-    </style>
-    <div class="gate-box">
-        <p class="gate-title">Update Gate</p>
-        <p>새로운 정보를 얼마나 반영할지 결정합니다. 값이 1에 가까울수록 새 정보를 많이 반영하고, 0에 가까울수록 이전 정보를 유지합니다.</p>
-    </div>
-    <div class="gate-box">
-        <p class="gate-title">Reset Gate</p>
-        <p>과거의 정보를 얼마나 무시할지 결정합니다. 값이 0에 가까울수록 과거 정보를 많이 무시하고, 1에 가까울수록 과거 정보를 유지합니다.</p>
-    </div>
-    """
-    st.markdown(gate_explanation, unsafe_allow_html=True)
-    
-    # 모델 비교
-    st.header("모델 성능 비교")
-    st.write("다양한 시계열 예측 모델의 성능을 비교해 보겠습니다.")
-    
     comparison_data = pd.DataFrame({
-        'Model': ['GRU', 'LSTM', 'Transformer', 'XGBoost'],
-        'MSE': [0.015, 0.018, 0.012, 0.020],
-        'MAE': [0.095, 0.105, 0.090, 0.110],
-        'R2 Score': [0.92, 0.90, 0.94, 0.88]
+        'Model': ['GRU', 'LSTM', 'Transformer', 'XGB'],
+        'Test RMSE': [0.0144, 0.022, 0.0572, 0.0674]
     })
     
-    fig = go.Figure()
-    for metric in ['MSE', 'MAE', 'R2 Score']:
-        fig.add_trace(go.Bar(
-            x=comparison_data['Model'],
-            y=comparison_data[metric],
-            name=metric
-        ))
-    
+    fig = px.bar(comparison_data, x='Model', y='Test RMSE', title='D1 Dataset: Test RMSE Comparison')
     fig.update_layout(
-        title='모델 성능 비교',
-        xaxis_title='모델',
-        yaxis_title='성능 지표',
-        barmode='group'
+        xaxis_title='Model', 
+        yaxis_title='Test RMSE',
+        plot_bgcolor='rgba(0,0,0,0)',
+        yaxis_gridcolor='lightgrey'
     )
+    fig.update_traces(marker_color=['#FF9999', '#66B2FF', '#99FF99', '#FFCC99'])
     st.plotly_chart(fig, use_container_width=True)
     
     st.write("""
-    위 그래프에서 볼 수 있듯이, GRU 모델은 다른 모델들과 비교했을 때 좋은 성능을 보입니다.
-    특히 LSTM과 비슷한 성능을 보이면서도 더 단순한 구조를 가져 학습 속도가 빠르다는 장점이 있습니다.
-    Transformer 모델이 일부 지표에서 더 좋은 성능을 보이지만, 계산 복잡도가 높아 실시간 예측에는 GRU가 더 적합할 수 있습니다.
+    위 그래프에서 볼 수 있듯이, GRU 모델은 다른 모델들과 비교했을 때 가장 우수한 성능을 보입니다.
+
+    - GRU의 Test RMSE는 0.0144로, 두 번째로 좋은 성능을 보인 LSTM(0.022)보다도 약 34.5% 낮은 오차를 보여줍니다.
+    - 이는 GRU가 주가 예측 태스크에서 더 정확한 예측을 할 수 있음을 의미합니다.
+    - Transformer(0.0572)와 XGB(0.0674) 모델은 GRU에 비해 현저히 높은 RMSE를 보이고 있습니다.
+    - 이는 이 특정 데이터셋과 태스크에 대해 GRU가 더 적합한 모델임을 시사합니다.
     """)
 
     # GRU의 주가 예측 적용
     st.header("GRU의 주가 예측 적용")
     st.write("""
-    GRU 모델이 주가 예측에 효과적인 이유:
-    1. 장기 의존성 포착: 과거의 중요한 정보를 오랫동안 기억할 수 있습니다.
-    2. 노이즈 필터링: Update Gate와 Reset Gate를 통해 불필요한 정보를 걸러냅니다.
-    3. 비선형성 모델링: 복잡한 주가 패턴을 효과적으로 학습할 수 있습니다.
+    GRU 모델이 주가 예측에 특히 효과적인 이유:
     """)
     
+    reasons = [
+        "**장기 의존성 포착**: 과거의 중요한 정보를 오랫동안 기억할 수 있어, 주가의 장기적 트렌드를 잘 파악합니다.",
+        "**노이즈 필터링**: Update Gate와 Reset Gate를 통해 불필요한 정보를 걸러내어, 주가의 일시적 변동에 덜 민감합니다.",
+        "**비선형성 모델링**: 복잡한 주가 패턴을 효과적으로 학습할 수 있어, 시장의 다양한 상황에 대응 가능합니다.",
+        "**계산 효율성**: LSTM보다 단순한 구조로 비슷한 성능을 내기 때문에, 실시간 예측이나 빠른 모델 업데이트에 유리합니다."
+    ]
+    
+    for reason in reasons:
+        st.markdown(f"- {reason}")
+
+    st.write("""
+    이러한 특성들이 결합되어 GRU가 다른 모델들보다 더 낮은 RMSE를 달성할 수 있었으며, 
+    이는 주가 예측에 있어 GRU의 우수성을 입증합니다.
+    """)
+import streamlit as st
+import pandas as pd
+import numpy as np
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
+import yfinance as yf
+from datetime import datetime, timedelta
 
 def dataset_explanation():
     st.title("데이터셋 설명")
@@ -198,6 +173,12 @@ def dataset_explanation():
     주가 예측을 위해 세 가지 주요 데이터셋을 활용합니다. 각 데이터셋은 서로 다른 측면의 정보를 제공하여 
     모델의 예측 성능을 향상시킵니다.
     """)
+    
+    # 실제 데이터 가져오기
+    stock = yf.Ticker("AAPL")
+    end_date = datetime.now()
+    start_date = end_date - timedelta(days=3650)  # 최근 10년
+    data = stock.history(start=start_date, end=end_date)
     
     # D1 데이터셋 설명
     st.header("D1: 종가 + 기술지표")
@@ -209,24 +190,36 @@ def dataset_explanation():
     st.subheader("주요 특성")
     d1_features = ["종가", "거래량", "RSI", "MACD", "볼린저 밴드"]
     for feature in d1_features:
-        st.write(f"- {feature}")
+        st.markdown(f"- **{feature}**")
     
     # D1 시각화
     st.subheader("D1 데이터셋 시각화")
     
-    # 가상의 데이터 생성
-    dates = pd.date_range(start="2023-01-01", end="2023-12-31")
-    close = np.cumsum(np.random.randn(len(dates))) + 100
-    volume = np.random.randint(1000000, 10000000, size=len(dates))
-    rsi = np.random.randint(0, 100, size=len(dates))
+    # RSI 계산
+    delta = data['Close'].diff()
+    gain = delta.where(delta > 0, 0)
+    loss = -delta.where(delta < 0, 0)
+    avg_gain = gain.rolling(window=14).mean()
+    avg_loss = loss.rolling(window=14).mean()
+    rs = avg_gain / avg_loss
+    data['RSI'] = 100 - (100 / (1 + rs))
     
-    fig = make_subplots(rows=3, cols=1, shared_xaxes=True, vertical_spacing=0.05)
+    # MACD 계산
+    exp1 = data['Close'].ewm(span=12, adjust=False).mean()
+    exp2 = data['Close'].ewm(span=26, adjust=False).mean()
+    data['MACD'] = exp1 - exp2
+    data['Signal Line'] = data['MACD'].ewm(span=9, adjust=False).mean()
     
-    fig.add_trace(go.Scatter(x=dates, y=close, name="종가"), row=1, col=1)
-    fig.add_trace(go.Bar(x=dates, y=volume, name="거래량"), row=2, col=1)
-    fig.add_trace(go.Scatter(x=dates, y=rsi, name="RSI"), row=3, col=1)
+    fig = make_subplots(rows=4, cols=1, shared_xaxes=True, vertical_spacing=0.1, 
+                        subplot_titles=("종가", "거래량", "RSI", "MACD"))
     
-    fig.update_layout(height=600, title_text="D1 데이터셋 시각화")
+    fig.add_trace(go.Scatter(x=data.index, y=data['Close'], name="종가"), row=1, col=1)
+    fig.add_trace(go.Bar(x=data.index, y=data['Volume'], name="거래량"), row=2, col=1)
+    fig.add_trace(go.Scatter(x=data.index, y=data['RSI'], name="RSI"), row=3, col=1)
+    fig.add_trace(go.Scatter(x=data.index, y=data['MACD'], name="MACD"), row=4, col=1)
+    fig.add_trace(go.Scatter(x=data.index, y=data['Signal Line'], name="Signal Line"), row=4, col=1)
+    
+    fig.update_layout(height=1000)  # 그래프 높이 증가
     st.plotly_chart(fig, use_container_width=True)
     
     # D2 데이터셋 설명
@@ -237,27 +230,42 @@ def dataset_explanation():
     """)
     
     st.subheader("주요 특성")
-    d2_features = ["종가", "금리", "환율", "S&P 500 지수", "원유 가격"]
+    d2_features = ["금리", "환율", "장단기 금리차"]
     for feature in d2_features:
-        st.write(f"- {feature}")
+        st.markdown(f"- **{feature}**")
     
     # D2 시각화
     st.subheader("D2 데이터셋 시각화")
     
-    # 가상의 데이터 생성
-    interest_rate = np.random.uniform(1, 5, size=len(dates))
-    exchange_rate = np.random.uniform(1000, 1200, size=len(dates))
-    sp500 = np.cumsum(np.random.randn(len(dates))) + 3000
+    # 실제 데이터 가져오기
+    end_date = datetime.now()
+    start_date = end_date - timedelta(days=3650)  # 최근 10년
     
-    fig = make_subplots(rows=2, cols=2, shared_xaxes=True, vertical_spacing=0.1, horizontal_spacing=0.05)
+    # 금리 데이터 (10년물 국채 수익률)
+    treasury_10y = yf.Ticker("^TNX").history(start=start_date, end=end_date)['Close']
     
-    fig.add_trace(go.Scatter(x=dates, y=close, name="종가"), row=1, col=1)
-    fig.add_trace(go.Scatter(x=dates, y=interest_rate, name="금리"), row=1, col=2)
-    fig.add_trace(go.Scatter(x=dates, y=exchange_rate, name="환율"), row=2, col=1)
-    fig.add_trace(go.Scatter(x=dates, y=sp500, name="S&P 500"), row=2, col=2)
+    # 환율 데이터 (USD/KRW)
+    exchange_rate = yf.Ticker("KRW=X").history(start=start_date, end=end_date)['Close']
     
-    fig.update_layout(height=600, title_text="D2 데이터셋 시각화")
+    # 장단기 금리차 데이터 (10년물 - 3개월물)
+    treasury_3m = yf.Ticker("^IRX").history(start=start_date, end=end_date)['Close']
+    yield_spread = treasury_10y - treasury_3m
+    
+    fig = make_subplots(rows=3, cols=1, shared_xaxes=True, vertical_spacing=0.1,
+                        subplot_titles=("금리 (10년물 국채 수익률)", "환율 (USD/KRW)", "장단기 금리차 (10년 - 3개월)"))
+    
+    fig.add_trace(go.Scatter(x=treasury_10y.index, y=treasury_10y, name="금리"), row=1, col=1)
+    fig.add_trace(go.Scatter(x=exchange_rate.index, y=exchange_rate, name="환율"), row=2, col=1)
+    fig.add_trace(go.Scatter(x=yield_spread.index, y=yield_spread, name="장단기 금리차"), row=3, col=1)
+    
+    fig.update_layout(height=900, showlegend=False)
+    fig.update_yaxes(title_text="금리 (%)", row=1, col=1)
+    fig.update_yaxes(title_text="환율 (원/달러)", row=2, col=1)
+    fig.update_yaxes(title_text="금리차 (%p)", row=3, col=1)
+    fig.update_xaxes(title_text="날짜", row=3, col=1)
+    
     st.plotly_chart(fig, use_container_width=True)
+    
     
     # D3 데이터셋 설명
     st.header("D3: 종가 + 기술지표 + 외부요인")
@@ -267,101 +275,141 @@ def dataset_explanation():
     """)
     
     st.subheader("주요 특성")
-    d3_features = d1_features + d2_features
-    d3_features = list(set(d3_features))  # 중복 제거
+    d3_features = list(set(d1_features + d2_features))  # 중복 제거
     for feature in d3_features:
-        st.write(f"- {feature}")
+        st.markdown(f"- **{feature}**")
     
-    # D3 시각화 (3D 산점도)
-    st.subheader("D3 데이터셋 3D 시각화")
+    # 데이터 분할 시각화
+    st.header("데이터 분할 (Train/Validation/Test)")
     
-    fig = go.Figure(data=[go.Scatter3d(
-        x=close,
-        y=rsi,
-        z=sp500,
-        mode='markers',
-        marker=dict(
-            size=5,
-            color=close,
-            colorscale='Viridis',
-            opacity=0.8
-        )
-    )])
+    total_samples = len(data)
+    train_size = int(0.6 * total_samples)
+    val_size = int(0.2 * total_samples)
+    test_size = total_samples - train_size - val_size
+    
+    train_data = data[:train_size]
+    val_data = data[train_size:train_size+val_size]
+    test_data = data[train_size+val_size:]
+    
+    fig = go.Figure()
+    fig.add_trace(go.Scatter(x=train_data.index, y=train_data['Close'], name='Train', mode='lines'))
+    fig.add_trace(go.Scatter(x=val_data.index, y=val_data['Close'], name='Validation', mode='lines'))
+    fig.add_trace(go.Scatter(x=test_data.index, y=test_data['Close'], name='Test', mode='lines'))
     
     fig.update_layout(
-        scene = dict(
-            xaxis_title='종가',
-            yaxis_title='RSI',
-            zaxis_title='S&P 500'
-        ),
-        width=700,
-        margin=dict(r=20, b=10, l=10, t=10),
-        title_text="D3 데이터셋: 종가, RSI, S&P 500 관계"
+        title='주가 데이터 분할 (6:2:2)',
+        xaxis_title='날짜',
+        yaxis_title='종가',
+        legend_title='데이터셋'
     )
     st.plotly_chart(fig, use_container_width=True)
     
-    # 데이터 전처리 과정
-    st.header("데이터 전처리 과정")
-    preprocessing_steps = [
-        "1. 데이터 수집 및 통합", 
-        "2. 결측치 처리",
-        "3. 이상치 제거",
-        "4. 특성 스케일링 (Min-Max 정규화)",
-        "5. 시계열 데이터 분할 (훈련/검증/테스트 세트)"
-    ]
     
-    for step in preprocessing_steps:
-        st.write(step)
-    
-    # 결론
-    st.header("결론")
-    st.write("""
-    세 가지 데이터셋(D1, D2, D3)을 활용함으로써, 주가 예측 모델의 정확도와 신뢰성을 향상시킬 수 있습니다. 
-    D3 데이터셋은 기술적 지표와 외부 요인을 모두 포함하고 있어, 가장 포괄적인 정보를 제공합니다.
-    그러나 데이터의 품질과 적절한 전처리가 모델 성능에 큰 영향을 미치므로, 
-    데이터 준비 단계에 충분한 시간과 노력을 투자해야 합니다.
-    각 데이터셋의 특성을 잘 이해하고 활용하면, 더 정확한 주가 예측이 가능할 것입니다.
-    """)
 
-# 예측 페이지
+import plotly.express as px
+from datetime import datetime, timedelta
+from plotly.subplots import make_subplots
+
+from collections import OrderedDict
+
 def prediction():
     st.title("주가 예측")
     
+    # OrderedDict를 사용하여 순서를 유지
+    sectors = OrderedDict([
+        ("IT", ["Apple Inc. (AAPL)"]),
+        ("필수 소비재", ["The Coca-Cola Co. (KO)"]),
+        ("헬스케어", ["Johnson & Johnson (JNJ)"]),
+        ("금융", ["JPMorgan Chase & Co. (JPM)"])
+    ])
+
+    # 각 주식의 월요일 주가를 설정하는 딕셔너리
+    monday_prices = {
+        "AAPL": 180.00,  # Apple Inc.의 월요일 주가
+        "KO": 60.00,  # The Coca-Cola Co.의 월요일 주가
+        "JNJ": 165.00,  # Johnson & Johnson의 월요일 주가
+        "JPM": 150.00  # JPMorgan Chase & Co.의 월요일 주가
+    }
+
     sector = st.selectbox("섹터 선택", list(sectors.keys()))
     stock = st.selectbox("종목 선택", sectors[sector])
 
     if stock:
         st.header(f"{stock} 주가 예측")
         
-        # 실제 데이터 대신 임의의 데이터 사용
-        today_price = np.random.randint(100, 200)
-        next_week_prediction = today_price + np.random.randint(-10, 11)
+        ticker = stock.split('(')[1].split(')')[0]
+        
+        # 최근 30일간의 주가 데이터 가져오기
+        end_date = datetime.now()
+        start_date = end_date - timedelta(days=30)
+        stock_data = yf.Ticker(ticker).history(start=start_date, end=end_date)
+        
+        current_price = stock_data['Close'].iloc[-1]
+        
+        predictions_data = {
+            "AAPL": [214.18, 209.28, 207.48, 206.65, 206.26],
+            "KO": [68.63, 66.72, 65.40, 64.65, 64.24],
+            "JNJ": [160.30, 158.46, 156.09, 154.50, 153.50],
+            "JPM": [211.91, 212.11, 211.99, 211.93, 211.92]
+        }
+        
+        prediction_dates = ["월", "화", "수", "목", "금"]
+        predictions = predictions_data[ticker]
+        
+        # 해당 주식의 월요일 주가 가져오기
+        monday_price = monday_prices[ticker]
         
         col1, col2 = st.columns(2)
         
         with col1:
             st.subheader("현재 주가 정보")
-            st.metric("현재 가격", f"${today_price:,.2f}")
+            st.metric("현재 가격", f"${current_price:.2f}")
             
-            # 주가 차트
-            dates = pd.date_range(start="2023-01-01", end="2023-12-31")
-            prices = np.cumsum(np.random.randn(len(dates))) * 5 + 100
-            df = pd.DataFrame({"Date": dates, "Price": prices})
-            
-            fig = px.line(df, x="Date", y="Price", title="주가 추이")
-            st.plotly_chart(fig, use_container_width=True)
+            # 최근 30일 주가 그래프
+            fig_recent = go.Figure()
+            fig_recent.add_trace(go.Scatter(x=stock_data.index, y=stock_data['Close'], name='실제 주가',
+                                            line=dict(color='royalblue', width=2)))
+            fig_recent.update_layout(
+                title="최근 30일 주가 추이",
+                xaxis_title="날짜",
+                yaxis_title="주가 ($)",
+                hovermode="x unified",
+                template="plotly_white"
+            )
+            fig_recent.update_xaxes(
+                rangebreaks=[dict(bounds=["sat", "mon"])],  # 주말 제외
+                showgrid=True, gridwidth=1, gridcolor='lightgrey'
+            )
+            fig_recent.update_yaxes(showgrid=True, gridwidth=1, gridcolor='lightgrey')
+            st.plotly_chart(fig_recent, use_container_width=True)
         
         with col2:
             st.subheader("주가 예측 결과")
-            delta = next_week_prediction - today_price
-            st.metric("다음 주 예상 가격", f"${next_week_prediction:,.2f}", delta=f"{delta:+.2f}")
+            next_day_prediction = predictions[0]
+            delta = next_day_prediction - current_price
+            st.metric("다음 거래일 예상 가격", f"${next_day_prediction:.2f}", delta=f"{delta:.2f}")
             
             if delta > 0:
-                st.success("주가가 상승 추세를 보일 것으로 예상됩니다.")
+                st.success("주가가 상승할 것으로 예상됩니다.")
             else:
-                st.error("주가가 하락 추세를 보일 것으로 예상됩니다.")
-
-
+                st.error("주가가 하락할 것으로 예상됩니다.")
+        
+        # 주가 예측 그래프
+        fig = go.Figure()
+        fig.add_trace(go.Scatter(x=prediction_dates, y=predictions, name='예측 주가',
+                                 line=dict(color='firebrick', width=2)))
+        fig.add_trace(go.Scatter(x=prediction_dates, y=[monday_price] + [None]*4, name='실제 주가 (월요일)',
+                                 mode='markers', marker=dict(color='royalblue', size=10)))
+        fig.update_layout(
+            title="주가 예측 vs 실제 주가 (월-금)",
+            xaxis_title="요일",
+            yaxis_title="주가 ($)",
+            hovermode="x unified",
+            template="plotly_white"
+        )
+        fig.update_xaxes(showgrid=True, gridwidth=1, gridcolor='lightgrey')
+        fig.update_yaxes(showgrid=True, gridwidth=1, gridcolor='lightgrey')
+        st.plotly_chart(fig, use_container_width=True)
 # 메인 앱 로직
 if selected == "홈":
     home()
