@@ -12,6 +12,39 @@ from collections import OrderedDict
 # 페이지 설정
 st.set_page_config(layout="wide", page_title="주가 예측 서비스")
 
+# 전체 앱에 대한 폰트 크기 증가 및 굵게 설정
+st.markdown("""
+<style>
+    html, body, [class*="css"] {
+        font-size: 24px;
+        font-weight: bold;
+    }
+    .stButton > button {
+        font-size: 24px;
+        font-weight: bold;
+    }
+    .stSelectbox > div > div > select {
+        font-size: 24px;
+        font-weight: bold;
+    }
+    .section-title {
+        font-size: 36px;
+        font-weight: bold;
+        color: #0066cc;
+        padding: 20px 0;
+        border-bottom: 2px solid #0066cc;
+        margin-bottom: 20px;
+    }
+    .subsection-title {
+        font-size: 30px;
+        font-weight: bold;
+        color: #003366;
+        padding: 15px 0;
+        margin-top: 30px;
+    }
+</style>
+""", unsafe_allow_html=True)
+
 # 메뉴 옵션
 menu_options = [
     {"icon": "house", "label": "홈"},
@@ -20,7 +53,7 @@ menu_options = [
     {"icon": "lightning", "label": "예측"}
 ]
 
-# 상단 메뉴 구성
+# 상단 메뉴 구성 (글자 크기 및 굵기 증가)
 selected = option_menu(
     menu_title=None,
     options=[option["label"] for option in menu_options],
@@ -30,8 +63,8 @@ selected = option_menu(
     orientation="horizontal",
     styles={
         "container": {"padding": "0!important", "background-color": "#fafafa"},
-        "icon": {"color": "orange", "font-size": "25px"}, 
-        "nav-link": {"font-size": "18px", "text-align": "center", "margin":"0px", "--hover-color": "#eee"},
+        "icon": {"color": "orange", "font-size": "30px"}, 
+        "nav-link": {"font-size": "28px", "text-align": "center", "margin":"0px", "--hover-color": "#eee", "font-weight": "bold"},
         "nav-link-selected": {"background-color": "lightblue"},
     }
 )
@@ -47,14 +80,13 @@ sectors = OrderedDict([
 # 함수 정의
 def home():
     st.title("주가 예측 서비스")
-    st.write("""
-    ## 딥러닝 기반 주식 가격 예측 플랫폼
+    st.markdown("""
+    # 딥러닝 기반 주식 가격 예측 플랫폼
     
     딥러닝 기술을 활용하여 주식 시장의 동향을 분석하고 예측합니다. 
     """)
 
-    # 최근 시장 동향 차트
-    st.subheader("최근 시장 동향")
+    st.markdown('<div class="section-title">최근 시장 동향</div>', unsafe_allow_html=True)
     market_data = pd.DataFrame({
         'Date': pd.date_range(start='2023-01-01', end='2023-12-31', freq='D'),
         'S&P 500': np.cumsum(np.random.randn(365) * 0.1) + 100,
@@ -62,24 +94,29 @@ def home():
         'DOW JONES': np.cumsum(np.random.randn(365) * 0.15) + 100
     })
     fig = px.line(market_data, x='Date', y=['S&P 500', 'NASDAQ', 'DOW JONES'], title='주요 지수 동향')
+    fig.update_layout(height=600, font=dict(size=24, color="black", family="Arial Black"))
+    fig.update_traces(line=dict(width=4))
+    fig.update_xaxes(title_font=dict(size=28), tickfont=dict(size=24))
+    fig.update_yaxes(title_font=dict(size=28), tickfont=dict(size=24))
+    fig.update_layout(legend=dict(font=dict(size=24)))
     st.plotly_chart(fig, use_container_width=True)
 
 def model_explanation():
     st.title("GRU 모델 설명")
     
-    st.write("""
-    GRU(Gated Recurrent Unit)는 순환 신경망(RNN)의 변형으로, 
+    st.markdown('<div class="section-title">GRU(Gated Recurrent Unit)</div>', unsafe_allow_html=True)
+    st.markdown("""
+    GRU는 순환 신경망(RNN)의 변형으로, 
     시계열 데이터 처리에 탁월한 성능을 보입니다.
     특히 장기 의존성 문제를 효과적으로 해결하여 
     복잡한 시퀀스 데이터 분석에 적합합니다.
     """)
     
-    # GRU 구조 설명
-    st.header("GRU의 구조")
+    st.markdown('<div class="subsection-title">GRU의 구조</div>', unsafe_allow_html=True)
     col1, col2 = st.columns([1, 2])
     
     with col1:
-        st.write("""
+        st.markdown("""
         GRU 셀의 주요 구성 요소:
         1. **Update Gate**: 새로운 정보 반영 정도 결정
         2. **Reset Gate**: 과거 정보 무시 정도 결정
@@ -87,18 +124,18 @@ def model_explanation():
         """)
     
     with col2:
-        # GRU 셀 구조 다이어그램 (SVG)
+        # GRU 셀 구조 다이어그램 (SVG) - 크기 및 색상 조정
         gru_cell_svg = """
-        <svg width="100%" height="250" xmlns="http://www.w3.org/2000/svg">
-            <rect x="10" y="10" width="95%" height="230" fill="lightblue" opacity="0.3" stroke="royalblue" stroke-width="2"/>
-            <circle cx="50%" cy="50%" r="80" fill="lavender" stroke="purple" stroke-width="2"/>
-            <text x="50%" y="50%" text-anchor="middle" fill="purple" font-size="16">Hidden State</text>
-            <rect x="20" y="20" width="120" height="50" fill="lightgreen" stroke="green" stroke-width="2"/>
-            <text x="80" y="50" text-anchor="middle" fill="green" font-size="14">Update Gate</text>
-            <rect x="20" y="180" width="120" height="50" fill="lightpink" stroke="red" stroke-width="2"/>
-            <text x="80" y="210" text-anchor="middle" fill="red" font-size="14">Reset Gate</text>
-            <line x1="140" y1="45" x2="200" y2="90" stroke="black" stroke-width="2" marker-end="url(#arrowhead)"/>
-            <line x1="140" y1="205" x2="200" y2="160" stroke="black" stroke-width="2" marker-end="url(#arrowhead)"/>
+        <svg width="100%" height="300" xmlns="http://www.w3.org/2000/svg">
+            <rect x="10" y="10" width="95%" height="280" fill="#E6F3FF" opacity="0.7" stroke="#0066CC" stroke-width="3"/>
+            <circle cx="50%" cy="50%" r="100" fill="#FFE6E6" stroke="#CC0000" stroke-width="3"/>
+            <text x="50%" y="50%" text-anchor="middle" fill="#CC0000" font-size="28" font-weight="bold">Hidden State</text>
+            <rect x="20" y="20" width="150" height="60" fill="#E6FFE6" stroke="#006600" stroke-width="3"/>
+            <text x="95" y="55" text-anchor="middle" fill="#006600" font-size="24" font-weight="bold">Update Gate</text>
+            <rect x="20" y="220" width="150" height="60" fill="#FFE6F0" stroke="#CC0066" stroke-width="3"/>
+            <text x="95" y="255" text-anchor="middle" fill="#CC0066" font-size="24" font-weight="bold">Reset Gate</text>
+            <line x1="170" y1="50" x2="230" y2="100" stroke="black" stroke-width="3" marker-end="url(#arrowhead)"/>
+            <line x1="170" y1="250" x2="230" y2="200" stroke="black" stroke-width="3" marker-end="url(#arrowhead)"/>
             <defs>
                 <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="0" refY="3.5" orient="auto">
                     <polygon points="0 0, 10 3.5, 0 7" />
@@ -106,11 +143,10 @@ def model_explanation():
             </defs>
         </svg>
         """
-        st.components.v1.html(gru_cell_svg, height=250)
+        st.components.v1.html(gru_cell_svg, height=300)
     
-    # 모델 비교 (RMSE 값만 사용)
-    st.header("모델 성능 비교")
-    st.write("""
+    st.markdown('<div class="subsection-title">모델 성능 비교</div>', unsafe_allow_html=True)
+    st.markdown("""
     다양한 시계열 예측 모델의 Test RMSE를 비교해 보겠습니다. 
     RMSE(Root Mean Square Error)는 예측값과 실제값의 차이를 나타내는 지표로, 
     낮을수록 예측 정확도가 높음을 의미합니다.
@@ -123,15 +159,20 @@ def model_explanation():
     
     fig = px.bar(comparison_data, x='Model', y='Test RMSE', title='D1 Dataset: Test RMSE Comparison')
     fig.update_layout(
+        height=500,
         xaxis_title='Model', 
         yaxis_title='Test RMSE',
         plot_bgcolor='rgba(0,0,0,0)',
-        yaxis_gridcolor='lightgrey'
+        yaxis_gridcolor='lightgrey',
+        font=dict(size=24, color="black", family="Arial Black"),
+        title=dict(font=dict(size=30))
     )
-    fig.update_traces(marker_color=['#FF9999', '#66B2FF', '#99FF99', '#FFCC99'])
+    fig.update_traces(marker_color=['#FF3333', '#3333FF', '#33FF33', '#FF9933'], marker_line_width=3, opacity=0.8)
+    fig.update_xaxes(title_font=dict(size=28), tickfont=dict(size=24))
+    fig.update_yaxes(title_font=dict(size=28), tickfont=dict(size=24))
     st.plotly_chart(fig, use_container_width=True)
     
-    st.write("""
+    st.markdown("""
     위 그래프에서 볼 수 있듯이, GRU 모델은 다른 모델들과 비교했을 때 가장 우수한 성능을 보입니다.
 
     - GRU의 Test RMSE는 0.0144로, 두 번째로 좋은 성능을 보인 LSTM(0.022)보다도 약 34.5% 낮은 오차를 보여줍니다.
@@ -140,9 +181,8 @@ def model_explanation():
     - 이는 이 특정 데이터셋과 태스크에 대해 GRU가 더 적합한 모델임을 시사합니다.
     """)
 
-    # GRU의 주가 예측 적용
-    st.header("GRU의 주가 예측 적용")
-    st.write("""
+    st.markdown('<div class="subsection-title">GRU의 주가 예측 적용</div>', unsafe_allow_html=True)
+    st.markdown("""
     GRU 모델이 주가 예측에 특히 효과적인 이유:
     """)
     
@@ -156,14 +196,14 @@ def model_explanation():
     for reason in reasons:
         st.markdown(f"- {reason}")
 
-    st.write("""
+    st.markdown("""
     이러한 특성들이 결합되어 GRU가 다른 모델들보다 더 낮은 RMSE를 달성할 수 있었으며, 
     이는 주가 예측에 있어 GRU의 우수성을 입증합니다.
     """)
 
 def dataset_explanation():
     st.title("데이터셋 설명")
-    st.write("""
+    st.markdown("""
     주가 예측을 위해 세 가지 주요 데이터셋을 활용합니다. 각 데이터셋은 서로 다른 측면의 정보를 제공하여 
     모델의 예측 성능을 향상시킵니다.
     """)
@@ -174,20 +214,23 @@ def dataset_explanation():
     start_date = end_date - timedelta(days=3650)  # 최근 10년
     data = stock.history(start=start_date, end=end_date)
     
-    # D1 데이터셋 설명
-    st.header("D1: 종가 + 기술지표")
-    st.write("""
+    st.markdown('<div class="section-title">D1: 종가 + 기술지표</div>', unsafe_allow_html=True)
+    st.markdown("""
     D1 데이터셋은 주식의 종가와 다양한 기술적 지표를 포함합니다. 이 데이터셋은 주로 주가의 과거 패턴과 
     추세를 분석하는 데 사용됩니다.
     """)
     
-    st.subheader("주요 특성")
-    d1_features = ["종가", "거래량", "RSI", "MACD", "볼린저 밴드"]
-    for feature in d1_features:
-        st.markdown(f"- **{feature}**")
+    st.markdown('<div class="subsection-title">주요 특성</div>', unsafe_allow_html=True)
+    col1, col2 = st.columns(2)
+    with col1:
+        st.markdown("- **종가**")
+        st.markdown("- **거래량**")
+    with col2:
+        st.markdown("- **RSI**")
+        st.markdown("- **MACD**")
+        st.markdown("- **볼린저 밴드**")
     
-    # D1 시각화
-    st.subheader("D1 데이터셋 시각화")
+    st.markdown('<div class="subsection-title">D1 데이터셋 시각화</div>', unsafe_allow_html=True)
     
     # RSI 계산
     delta = data['Close'].diff()
@@ -207,29 +250,34 @@ def dataset_explanation():
     fig = make_subplots(rows=4, cols=1, shared_xaxes=True, vertical_spacing=0.1, 
                         subplot_titles=("종가", "거래량", "RSI", "MACD"))
     
-    fig.add_trace(go.Scatter(x=data.index, y=data['Close'], name="종가"), row=1, col=1)
-    fig.add_trace(go.Bar(x=data.index, y=data['Volume'], name="거래량"), row=2, col=1)
-    fig.add_trace(go.Scatter(x=data.index, y=data['RSI'], name="RSI"), row=3, col=1)
-    fig.add_trace(go.Scatter(x=data.index, y=data['MACD'], name="MACD"), row=4, col=1)
-    fig.add_trace(go.Scatter(x=data.index, y=data['Signal Line'], name="Signal Line"), row=4, col=1)
+    fig.add_trace(go.Scatter(x=data.index, y=data['Close'], name="종가", line=dict(color='#FF4136', width=3)), row=1, col=1)
+    fig.add_trace(go.Bar(x=data.index, y=data['Volume'], name="거래량", marker_color='#0074D9'), row=2, col=1)
+    fig.add_trace(go.Scatter(x=data.index, y=data['RSI'], name="RSI", line=dict(color='#2ECC40', width=3)), row=3, col=1)
+    fig.add_trace(go.Scatter(x=data.index, y=data['MACD'], name="MACD", line=dict(color='#FF851B', width=3)), row=4, col=1)
+    fig.add_trace(go.Scatter(x=data.index, y=data['Signal Line'], name="Signal Line", line=dict(color='#B10DC9', width=3)), row=4, col=1)
     
-    fig.update_layout(height=1000)  # 그래프 높이 증가
+    fig.update_layout(height=1200, font=dict(size=24, color="black", family="Arial Black"))  # 그래프 높이 증가 및 폰트 크기 조정
+    fig.update_xaxes(title_font=dict(size=28), tickfont=dict(size=24))
+    fig.update_yaxes(title_font=dict(size=28), tickfont=dict(size=24))
+    
+    # 각 서브플롯의 제목 크기 조정
+    for i in fig['layout']['annotations']:
+        i['font'] = dict(size=30, color="black", family="Arial Black")
+    
     st.plotly_chart(fig, use_container_width=True)
     
-    # D2 데이터셋 설명
-    st.header("D2: 종가 + 외부요인")
-    st.write("""
+    st.markdown('<div class="section-title">D2: 종가 + 외부요인</div>', unsafe_allow_html=True)
+    st.markdown("""
     D2 데이터셋은 주식의 종가와 함께 다양한 외부 경제 지표를 포함합니다. 이 데이터셋은 주가에 영향을 
     미치는 거시경제적 요인을 고려합니다.
     """)
     
-    st.subheader("주요 특성")
-    d2_features = ["금리", "환율", "장단기 금리차"]
+    st.markdown('<div class="subsection-title">주요 특성</div>', unsafe_allow_html=True)
+    d2_features = ["금리", "달러 인덱스", "장단기 금리차"]
     for feature in d2_features:
         st.markdown(f"- **{feature}**")
     
-    # D2 시각화
-    st.subheader("D2 데이터셋 시각화")
+    st.markdown('<div class="subsection-title">D2 데이터셋 시각화</div>', unsafe_allow_html=True)
     
     # 실제 데이터 가져오기
     end_date = datetime.now()
@@ -238,42 +286,53 @@ def dataset_explanation():
     # 금리 데이터 (10년물 국채 수익률)
     treasury_10y = yf.Ticker("^TNX").history(start=start_date, end=end_date)['Close']
     
-    # 환율 데이터 (USD/KRW)
-    exchange_rate = yf.Ticker("KRW=X").history(start=start_date, end=end_date)['Close']
+    # 달러 인덱스 데이터
+    dollar_index = yf.Ticker("DX-Y.NYB").history(start=start_date, end=end_date)['Close']
     
-    # 장단기 금리차 데이터 (10년물 - 3개월물)
-    treasury_3m = yf.Ticker("^IRX").history(start=start_date, end=end_date)['Close']
-    yield_spread = treasury_10y - treasury_3m
+    # 장단기 금리차 데이터 (10년물 - 2년물)
+    treasury_2y = yf.Ticker("^TWO").history(start=start_date, end=end_date)['Close']
+    yield_spread = treasury_10y - treasury_2y
     
     fig = make_subplots(rows=3, cols=1, shared_xaxes=True, vertical_spacing=0.1,
-                        subplot_titles=("금리 (10년물 국채 수익률)", "환율 (USD/KRW)", "장단기 금리차 (10년 - 3개월)"))
+                        subplot_titles=("금리", "달러 인덱스", "장단기 금리차"))
     
-    fig.add_trace(go.Scatter(x=treasury_10y.index, y=treasury_10y, name="금리"), row=1, col=1)
-    fig.add_trace(go.Scatter(x=exchange_rate.index, y=exchange_rate, name="환율"), row=2, col=1)
-    fig.add_trace(go.Scatter(x=yield_spread.index, y=yield_spread, name="장단기 금리차"), row=3, col=1)
+    fig.add_trace(go.Scatter(x=treasury_10y.index, y=treasury_10y, name="금리", line=dict(color='#FF4136', width=3)), row=1, col=1)
+    fig.add_trace(go.Scatter(x=dollar_index.index, y=dollar_index, name="달러 인덱스", line=dict(color='#0074D9', width=3)), row=2, col=1)
+    fig.add_trace(go.Scatter(x=yield_spread.index, y=yield_spread, name="장단기 금리차", line=dict(color='#2ECC40', width=3)), row=3, col=1)
     
-    fig.update_layout(height=900, showlegend=False)
-    fig.update_yaxes(title_text="금리 (%)", row=1, col=1)
-    fig.update_yaxes(title_text="환율 (원/달러)", row=2, col=1)
-    fig.update_yaxes(title_text="금리차 (%p)", row=3, col=1)
-    fig.update_xaxes(title_text="날짜", row=3, col=1)
+    fig.update_layout(height=1000, showlegend=False, font=dict(size=24, color="black", family="Arial Black"))
+    fig.update_yaxes(title_text="금리 (%)", row=1, col=1, title_font=dict(size=28), tickfont=dict(size=24))
+    fig.update_yaxes(title_text="달러 인덱스", row=2, col=1, title_font=dict(size=28), tickfont=dict(size=24))
+    fig.update_yaxes(title_text="금리차 (%p)", row=3, col=1, title_font=dict(size=28), tickfont=dict(size=24))
+    fig.update_xaxes(title_text="날짜", row=3, col=1, title_font=dict(size=28), tickfont=dict(size=24))
+    
+    # 각 서브플롯의 제목 크기 조정
+    for i in fig['layout']['annotations']:
+        i['font'] = dict(size=30, color="black", family="Arial Black")
     
     st.plotly_chart(fig, use_container_width=True)
     
-    # D3 데이터셋 설명
-    st.header("D3: 종가 + 기술지표 + 외부요인")
-    st.write("""
+    st.markdown('<div class="section-title">D3: 종가 + 기술지표 + 외부요인</div>', unsafe_allow_html=True)
+    st.markdown("""
     D3 데이터셋은 D1과 D2의 모든 특성을 결합한 가장 포괄적인 데이터셋입니다. 이 데이터셋은 기술적 분석과 
     기본적 분석을 모두 고려하여 가장 정확한 예측을 제공할 수 있습니다.
     """)
     
-    st.subheader("주요 특성")
-    d3_features = list(set(d1_features + d2_features))  # 중복 제거
-    for feature in d3_features:
-        st.markdown(f"- **{feature}**")
+    st.markdown('<div class="subsection-title">주요 특성</div>', unsafe_allow_html=True)
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        st.markdown("- **종가**")
+        st.markdown("- **거래량**")
+    with col2:
+        st.markdown("- **RSI**")
+        st.markdown("- **MACD**")
+        st.markdown("- **볼린저 밴드**")
+    with col3:
+        st.markdown("- **장단기 금리차**")
+        st.markdown("- **달러 인덱스**")
+        st.markdown("- **금리**")
     
-    # 데이터 분할 시각화
-    st.header("데이터 분할 (Train/Validation/Test)")
+    st.markdown('<div class="section-title">데이터 분할 (Train/Validation/Test)</div>', unsafe_allow_html=True)
     
     total_samples = len(data)
     train_size = int(0.6 * total_samples)
@@ -285,26 +344,33 @@ def dataset_explanation():
     test_data = data[train_size+val_size:]
     
     fig = go.Figure()
-    fig.add_trace(go.Scatter(x=train_data.index, y=train_data['Close'], name='Train', mode='lines'))
-    fig.add_trace(go.Scatter(x=val_data.index, y=val_data['Close'], name='Validation', mode='lines'))
-    fig.add_trace(go.Scatter(x=test_data.index, y=test_data['Close'], name='Test', mode='lines'))
+    fig.add_trace(go.Scatter(x=train_data.index, y=train_data['Close'], name='Train', mode='lines', line=dict(color='#FF4136', width=3)))
+    fig.add_trace(go.Scatter(x=val_data.index, y=val_data['Close'], name='Validation', mode='lines', line=dict(color='#0074D9', width=3)))
+    fig.add_trace(go.Scatter(x=test_data.index, y=test_data['Close'], name='Test', mode='lines', line=dict(color='#2ECC40', width=3)))
     
     fig.update_layout(
-        title='주가 데이터 분할 (6:2:2)',
+        height=600,
+        title=dict(text='주가 데이터 분할 (6:2:2)', font=dict(size=30, color="black", family="Arial Black")),
         xaxis_title='날짜',
         yaxis_title='종가',
-        legend_title='데이터셋'
+        legend_title='데이터셋',
+        font=dict(size=24, color="black", family="Arial Black")
     )
+    fig.update_xaxes(title_font=dict(size=28), tickfont=dict(size=24))
+    fig.update_yaxes(title_font=dict(size=28), tickfont=dict(size=24))
     st.plotly_chart(fig, use_container_width=True)
 
 def prediction():
     st.title("주가 예측")
     
-    sector = st.selectbox("섹터 선택", list(sectors.keys()))
-    stock = st.selectbox("종목 선택", sectors[sector])
+    st.markdown('<div class="subsection-title">섹터 선택</div>', unsafe_allow_html=True)
+    sector = st.selectbox("", list(sectors.keys()), key='sector_select')
+    
+    st.markdown('<div class="subsection-title">종목 선택</div>', unsafe_allow_html=True)
+    stock = st.selectbox("", sectors[sector], key='stock_select')
 
     if stock:
-        st.header(f"{stock} 주가 예측")
+        st.markdown(f'<div class="section-title">{stock} 주가 예측</div>', unsafe_allow_html=True)
         
         ticker = stock.split('(')[1].split(')')[0]
         
@@ -337,53 +403,62 @@ def prediction():
         col1, col2 = st.columns(2)
         
         with col1:
-            st.subheader("현재 주가 정보")
-            st.metric("현재 가격", f"${current_price:.2f}")
+            st.markdown('<div class="subsection-title">현재 주가 정보</div>', unsafe_allow_html=True)
+            st.markdown(f"<h3 style='font-size: 28px; font-weight: bold;'>현재 가격: ${current_price:.2f}</h3>", unsafe_allow_html=True)
             
-            # 최근 30일 주가 그래프
+            # 최근 30일 주가 그래프 (크기 및 색상 조정)
             fig_recent = go.Figure()
             fig_recent.add_trace(go.Scatter(x=stock_data.index, y=stock_data['Close'], name='실제 주가',
-                                            line=dict(color='royalblue', width=2)))
+                                            line=dict(color='#FF4136', width=3)))
             fig_recent.update_layout(
-                title="최근 30일 주가 추이",
+                height=400,
+                title=dict(text="최근 30일 주가 추이", font=dict(size=30, color="black", family="Arial Black")),
                 xaxis_title="날짜",
                 yaxis_title="주가 ($)",
                 hovermode="x unified",
-                template="plotly_white"
+                template="plotly_white",
+                font=dict(size=24, color="black", family="Arial Black")
             )
             fig_recent.update_xaxes(
                 rangebreaks=[dict(bounds=["sat", "mon"])],  # 주말 제외
-                showgrid=True, gridwidth=1, gridcolor='lightgrey'
+                showgrid=True, gridwidth=1, gridcolor='lightgrey',
+                title_font=dict(size=28), tickfont=dict(size=24)
             )
-            fig_recent.update_yaxes(showgrid=True, gridwidth=1, gridcolor='lightgrey')
+            fig_recent.update_yaxes(showgrid=True, gridwidth=1, gridcolor='lightgrey',
+                                    title_font=dict(size=28), tickfont=dict(size=24))
             st.plotly_chart(fig_recent, use_container_width=True)
         
         with col2:
-            st.subheader("주가 예측 결과")
+            st.markdown('<div class="subsection-title">주가 예측 결과</div>', unsafe_allow_html=True)
             next_day_prediction = predictions[0]
             delta = next_day_prediction - current_price
-            st.metric("다음 거래일 예상 가격", f"${next_day_prediction:.2f}", delta=f"{delta:.2f}")
+            st.markdown(f"<h3 style='font-size: 28px; font-weight: bold;'>다음 거래일 예상 가격: ${next_day_prediction:.2f} (변화: {delta:.2f})</h3>", unsafe_allow_html=True)
             
             if delta > 0:
-                st.success("주가가 상승할 것으로 예상됩니다.")
+                st.markdown(f"<h3 style='font-size: 28px; font-weight: bold; color: green; background-color: #e6ffe6; padding: 10px;'>주가가 상승할 것으로 예상됩니다.</h3>", unsafe_allow_html=True)
             else:
-                st.error("주가가 하락할 것으로 예상됩니다.")
+                st.markdown(f"<h3 style='font-size: 28px; font-weight: bold; color: red; background-color: #ffe6e6; padding: 10px;'>주가가 하락할 것으로 예상됩니다.</h3>", unsafe_allow_html=True)
         
-        # 주가 예측 그래프
+        # 주가 예측 그래프 (크기 및 색상 조정)
+        st.markdown('<div class="subsection-title">주가 예측 그래프</div>', unsafe_allow_html=True)
         fig = go.Figure()
         fig.add_trace(go.Scatter(x=prediction_dates, y=predictions, name='예측 주가',
-                                 line=dict(color='firebrick', width=2)))
+                                 line=dict(color='#FF4136', width=3)))
         fig.add_trace(go.Scatter(x=prediction_dates, y=[monday_price] + [None]*4, name='실제 주가 (월요일)',
-                                 mode='markers', marker=dict(color='royalblue', size=10)))
+                                 mode='markers', marker=dict(color='#0074D9', size=12)))
         fig.update_layout(
-            title="주가 예측 vs 실제 주가 (월-금)",
+            height=500,
+            title=dict(text="주가 예측 vs 실제 주가 (월-금)", font=dict(size=30, color="black", family="Arial Black")),
             xaxis_title="요일",
             yaxis_title="주가 ($)",
             hovermode="x unified",
-            template="plotly_white"
+            template="plotly_white",
+            font=dict(size=24, color="black", family="Arial Black")
         )
-        fig.update_xaxes(showgrid=True, gridwidth=1, gridcolor='lightgrey')
-        fig.update_yaxes(showgrid=True, gridwidth=1, gridcolor='lightgrey')
+        fig.update_xaxes(showgrid=True, gridwidth=1, gridcolor='lightgrey',
+                         title_font=dict(size=28), tickfont=dict(size=24))
+        fig.update_yaxes(showgrid=True, gridwidth=1, gridcolor='lightgrey',
+                         title_font=dict(size=28), tickfont=dict(size=24))
         st.plotly_chart(fig, use_container_width=True)
 
 # 메인 앱 로직
@@ -408,7 +483,8 @@ footer_html = f"""
     color: black;
     text-align: center;
     padding: 10px;
-    font-size: 14px;
+    font-size: 22px;
+    font-weight: bold;
 }}
 </style>
 <div class="footer">
