@@ -4,9 +4,10 @@ import pandas as pd
 import numpy as np
 import plotly.graph_objects as go
 import plotly.express as px
-from datetime import datetime
+from datetime import datetime, timedelta
 from plotly.subplots import make_subplots
 import yfinance as yf
+from collections import OrderedDict
 
 # 페이지 설정
 st.set_page_config(layout="wide", page_title="주가 예측 서비스")
@@ -35,15 +36,15 @@ selected = option_menu(
     }
 )
 
-# 섹터 및 종목 데이터 (기존 코드와 동일)
-sectors = {
-    "금융": ["JPMorgan Chase & Co. (JPM)"],
-    "IT": ["Apple Inc. (AAPL)"],
-    "필수 소비재": ["The Coca-Cola Co. (KO)"],
-    "헬스케어": ["Johnson & Johnson (JNJ)"]
-}
+# 섹터 및 종목 데이터
+sectors = OrderedDict([
+    ("IT", ["Apple Inc. (AAPL)"]),
+    ("필수 소비재", ["The Coca-Cola Co. (KO)"]),
+    ("헬스케어", ["Johnson & Johnson (JNJ)"]),
+    ("금융", ["JPMorgan Chase & Co. (JPM)"])
+])
 
-# 홈 페이지
+# 함수 정의
 def home():
     st.title("주가 예측 서비스")
     st.write("""
@@ -159,13 +160,6 @@ def model_explanation():
     이러한 특성들이 결합되어 GRU가 다른 모델들보다 더 낮은 RMSE를 달성할 수 있었으며, 
     이는 주가 예측에 있어 GRU의 우수성을 입증합니다.
     """)
-import streamlit as st
-import pandas as pd
-import numpy as np
-import plotly.graph_objects as go
-from plotly.subplots import make_subplots
-import yfinance as yf
-from datetime import datetime, timedelta
 
 def dataset_explanation():
     st.title("데이터셋 설명")
@@ -266,7 +260,6 @@ def dataset_explanation():
     
     st.plotly_chart(fig, use_container_width=True)
     
-    
     # D3 데이터셋 설명
     st.header("D3: 종가 + 기술지표 + 외부요인")
     st.write("""
@@ -303,34 +296,10 @@ def dataset_explanation():
         legend_title='데이터셋'
     )
     st.plotly_chart(fig, use_container_width=True)
-    
-    
-
-import plotly.express as px
-from datetime import datetime, timedelta
-from plotly.subplots import make_subplots
-
-from collections import OrderedDict
 
 def prediction():
     st.title("주가 예측")
     
-    # OrderedDict를 사용하여 순서를 유지
-    sectors = OrderedDict([
-        ("IT", ["Apple Inc. (AAPL)"]),
-        ("필수 소비재", ["The Coca-Cola Co. (KO)"]),
-        ("헬스케어", ["Johnson & Johnson (JNJ)"]),
-        ("금융", ["JPMorgan Chase & Co. (JPM)"])
-    ])
-
-    # 각 주식의 월요일 주가를 설정하는 딕셔너리
-    monday_prices = {
-        "AAPL": 180.00,  # Apple Inc.의 월요일 주가
-        "KO": 60.00,  # The Coca-Cola Co.의 월요일 주가
-        "JNJ": 165.00,  # Johnson & Johnson의 월요일 주가
-        "JPM": 150.00  # JPMorgan Chase & Co.의 월요일 주가
-    }
-
     sector = st.selectbox("섹터 선택", list(sectors.keys()))
     stock = st.selectbox("종목 선택", sectors[sector])
 
@@ -357,6 +326,12 @@ def prediction():
         predictions = predictions_data[ticker]
         
         # 해당 주식의 월요일 주가 가져오기
+        monday_prices = {
+            "AAPL": 180.00,
+            "KO": 60.00,
+            "JNJ": 165.00,
+            "JPM": 150.00
+        }
         monday_price = monday_prices[ticker]
         
         col1, col2 = st.columns(2)
@@ -410,17 +385,18 @@ def prediction():
         fig.update_xaxes(showgrid=True, gridwidth=1, gridcolor='lightgrey')
         fig.update_yaxes(showgrid=True, gridwidth=1, gridcolor='lightgrey')
         st.plotly_chart(fig, use_container_width=True)
+
 # 메인 앱 로직
 if selected == "홈":
     home()
-elif selected == "모델 설명":
+elif selected == "모델 소개":
     model_explanation()
-elif selected == "데이터셋 설명":
+elif selected == "데이터셋 소개":
     dataset_explanation()
 elif selected == "예측":
     prediction()
 
-# 앱 정보 (footer로 이동)
+# 앱 정보 (footer)
 footer_html = f"""
 <style>
 .footer {{
