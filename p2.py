@@ -10,7 +10,7 @@ import yfinance as yf
 from collections import OrderedDict
 
 # 페이지 설정
-st.set_page_config(layout="wide", page_title="주가 예측 서비스")
+st.set_page_config(layout="wide", page_title="Fin Sight 주가 예측 서비스")
 
 # 색상 변수 정의
 MAIN_COLOR = "#6a4abd"  # 도지블루
@@ -19,19 +19,19 @@ MAIN_COLOR = "#6a4abd"  # 도지블루
 st.markdown(f"""
 <style>
     html, body, [class*="css"] {{
-        font-size: 24px;
+        font-size: 28px;
         font-weight: bold;
     }}
     .stButton > button {{
-        font-size: 24px;
+        font-size: 28px;
         font-weight: bold;
     }}
     .stSelectbox > div > div > select {{
-        font-size: 24px;
+        font-size: 28px;
         font-weight: bold;
     }}
     .section-title {{
-        font-size: 36px;
+        font-size: 40px;
         font-weight: bold;
         color: {MAIN_COLOR};
         padding: 20px 0;
@@ -39,7 +39,7 @@ st.markdown(f"""
         margin-bottom: 20px;
     }}
     .subsection-title {{
-        font-size: 30px;
+        font-size: 34px;
         font-weight: bold;
         color: {MAIN_COLOR};
         padding: 15px 0;
@@ -93,7 +93,7 @@ sectors = OrderedDict([
 
 # 함수 정의
 def home():
-    st.title("주가 예측 서비스")
+    st.title("Fin Sight 주가 예측 서비스")
     st.markdown("""
     # 딥러닝 기반 주식 가격 예측 플랫폼
     
@@ -270,61 +270,77 @@ def dataset_explanation():
     fig.add_trace(go.Scatter(x=data.index, y=data['MACD'], name="MACD", line=dict(color='#FF851B', width=3)), row=4, col=1)
     fig.add_trace(go.Scatter(x=data.index, y=data['Signal Line'], name="Signal Line", line=dict(color='#B10DC9', width=3)), row=4, col=1)
     
-    fig.update_layout(height=1200, font=dict(size=24, color="black", family="Arial Black"))  # 그래프 높이 증가 및 폰트 크기 조정
-    fig.update_xaxes(title_font=dict(size=28), tickfont=dict(size=24))
-    fig.update_yaxes(title_font=dict(size=28), tickfont=dict(size=24))
+    fig.update_layout(height=1200, font=dict(size=28, color="black", family="Arial Black"))  # 그래프 높이 증가 및 폰트 크기 조정
+    fig.update_xaxes(title_font=dict(size=32), tickfont=dict(size=28))
+    fig.update_yaxes(title_font=dict(size=32), tickfont=dict(size=28))
     
     # 각 서브플롯의 제목 크기 조정
     for i in fig['layout']['annotations']:
-        i['font'] = dict(size=30, color="black", family="Arial Black")
+        i['font'] = dict(size=36, color="black", family="Arial Black")
     
     st.plotly_chart(fig, use_container_width=True)
-    
-    st.markdown('<div class="section-title">D2: 종가 + 외부요인</div>', unsafe_allow_html=True)
-    st.markdown("""
-    D2 데이터셋은 주식의 종가와 함께 다양한 외부 경제 지표를 포함합니다. 이 데이터셋은 주가에 영향을 
-    미치는 거시경제적 요인을 고려합니다.
-    """)
-    
-    st.markdown('<div class="subsection-title">주요 특성</div>', unsafe_allow_html=True)
-    d2_features = ["금리", "달러 인덱스", "장단기 금리차"]
-    for feature in d2_features:
-        st.markdown(f"- **{feature}**")
-    
+
     st.markdown('<div class="subsection-title">D2 데이터셋 시각화</div>', unsafe_allow_html=True)
     
-    # 실제 데이터 가져오기
+    # 데이터 가져오기 및 처리 함수
+    def get_data(ticker, start_date, end_date):
+        try:
+            data = yf.Ticker(ticker).history(start=start_date, end=end_date)['Close']
+            return data
+        except Exception as e:
+            st.error(f"데이터를 가져오는 중 오류가 발생했습니다 ({ticker}): {str(e)}")
+            return pd.Series()
+
     end_date = datetime.now()
     start_date = end_date - timedelta(days=3650)  # 최근 10년
     
     # 금리 데이터 (10년물 국채 수익률)
-    treasury_10y = yf.Ticker("^TNX").history(start=start_date, end=end_date)['Close']
+    treasury_10y = get_data("^TNX", start_date, end_date)
     
     # 달러 인덱스 데이터
-    dollar_index = yf.Ticker("DX-Y.NYB").history(start=start_date, end=end_date)['Close']
+    dollar_index = get_data("DX-Y.NYB", start_date, end_date)
     
-    # 장단기 금리차 데이터 (10년물 - 2년물)
-    treasury_2y = yf.Ticker("^TWO").history(start=start_date, end=end_date)['Close']
-    yield_spread = treasury_10y - treasury_2y
-    
+    # 2년물 국채 수익률 데이터
+    treasury_2y = get_data("^IRX", start_date, end_date)  # ^TWO 대신 ^IRX 사용
+
+    # 장단기 금리차 계산
+    if not treasury_10y.empty and not treasury_2y.empty:
+        common_dates = treasury_10y.index.intersection(treasury_2y.index)
+        yield_spread = treasury_10y[common_dates] - treasury_2y[common_dates]
+    else:
+        yield_spread = pd.Series()
+
+    # 그래프 생성
     fig = make_subplots(rows=3, cols=1, shared_xaxes=True, vertical_spacing=0.1,
                         subplot_titles=("금리", "달러 인덱스", "장단기 금리차"))
     
-    fig.add_trace(go.Scatter(x=treasury_10y.index, y=treasury_10y, name="금리", line=dict(color='#FF4136', width=3)), row=1, col=1)
-    fig.add_trace(go.Scatter(x=dollar_index.index, y=dollar_index, name="달러 인덱스", line=dict(color='#0074D9', width=3)), row=2, col=1)
-    fig.add_trace(go.Scatter(x=yield_spread.index, y=yield_spread, name="장단기 금리차", line=dict(color='#2ECC40', width=3)), row=3, col=1)
+    if not treasury_10y.empty:
+        fig.add_trace(go.Scatter(x=treasury_10y.index, y=treasury_10y, name="금리", line=dict(color='#FF4136', width=3)), row=1, col=1)
+    else:
+        st.warning("금리 데이터를 가져오지 못했습니다.")
+
+    if not dollar_index.empty:
+        fig.add_trace(go.Scatter(x=dollar_index.index, y=dollar_index, name="달러 인덱스", line=dict(color='#0074D9', width=3)), row=2, col=1)
+    else:
+        st.warning("달러 인덱스 데이터를 가져오지 못했습니다.")
+
+    if not yield_spread.empty:
+        fig.add_trace(go.Scatter(x=yield_spread.index, y=yield_spread, name="장단기 금리차", line=dict(color='#2ECC40', width=3)), row=3, col=1)
+    else:
+        st.warning("장단기 금리차 데이터를 계산하지 못했습니다.")
     
-    fig.update_layout(height=1000, showlegend=False, font=dict(size=24, color="black", family="Arial Black"))
-    fig.update_yaxes(title_text="금리 (%)", row=1, col=1, title_font=dict(size=28), tickfont=dict(size=24))
-    fig.update_yaxes(title_text="달러 인덱스", row=2, col=1, title_font=dict(size=28), tickfont=dict(size=24))
-    fig.update_yaxes(title_text="금리차 (%p)", row=3, col=1, title_font=dict(size=28), tickfont=dict(size=24))
-    fig.update_xaxes(title_text="날짜", row=3, col=1, title_font=dict(size=28), tickfont=dict(size=24))
+    fig.update_layout(height=1200, showlegend=False, font=dict(size=28, color="black", family="Arial Black"))
+    fig.update_yaxes(title_text="금리 (%)", row=1, col=1, title_font=dict(size=32), tickfont=dict(size=28))
+    fig.update_yaxes(title_text="달러 인덱스", row=2, col=1, title_font=dict(size=32), tickfont=dict(size=28))
+    fig.update_yaxes(title_text="금리차 (%p)", row=3, col=1, title_font=dict(size=32), tickfont=dict(size=28))
+    fig.update_xaxes(title_text="날짜", row=3, col=1, title_font=dict(size=32), tickfont=dict(size=28))
     
     # 각 서브플롯의 제목 크기 조정
     for i in fig['layout']['annotations']:
-        i['font'] = dict(size=30, color="black", family="Arial Black")
+        i['font'] = dict(size=36, color="black", family="Arial Black")
     
     st.plotly_chart(fig, use_container_width=True)
+
     
     st.markdown('<div class="section-title">D3: 종가 + 기술지표 + 외부요인</div>', unsafe_allow_html=True)
     st.markdown("""
@@ -364,14 +380,14 @@ def dataset_explanation():
     
     fig.update_layout(
         height=600,
-        title=dict(text='주가 데이터 분할 (6:2:2)', font=dict(size=30, color="black", family="Arial Black")),
+        title=dict(text='주가 데이터 분할 (6:2:2)', font=dict(size=36, color="black", family="Arial Black")),
         xaxis_title='날짜',
         yaxis_title='종가',
         legend_title='데이터셋',
-        font=dict(size=24, color="black", family="Arial Black")
+        font=dict(size=28, color="black", family="Arial Black")
     )
-    fig.update_xaxes(title_font=dict(size=28), tickfont=dict(size=24))
-    fig.update_yaxes(title_font=dict(size=28), tickfont=dict(size=24))
+    fig.update_xaxes(title_font=dict(size=32), tickfont=dict(size=28))
+    fig.update_yaxes(title_font=dict(size=32), tickfont=dict(size=28))
     st.plotly_chart(fig, use_container_width=True)
 
 def prediction():
@@ -407,10 +423,10 @@ def prediction():
         
         # 해당 주식의 월요일 주가 가져오기
         monday_prices = {
-            "AAPL": 180.00,
-            "KO": 60.00,
-            "JNJ": 165.00,
-            "JPM": 150.00
+            "AAPL": 225.89,
+            "KO": 68.98,
+            "JNJ": 159.63,
+            "JPM": 215.45
         }
         monday_price = monday_prices[ticker]
         
@@ -418,40 +434,41 @@ def prediction():
         
         with col1:
             st.markdown('<div class="subsection-title">현재 주가 정보</div>', unsafe_allow_html=True)
-            st.markdown(f"<h3 style='font-size: 28px; font-weight: bold;'>현재 가격: ${current_price:.2f}</h3>", unsafe_allow_html=True)
+            st.markdown(f"<h3 style='font-size: 32px; font-weight: bold;'>현재 가격: ${current_price:.2f}</h3>", unsafe_allow_html=True)
             
             # 최근 30일 주가 그래프 (크기 및 색상 조정)
             fig_recent = go.Figure()
             fig_recent.add_trace(go.Scatter(x=stock_data.index, y=stock_data['Close'], name='실제 주가',
                                             line=dict(color='#FF4136', width=3)))
             fig_recent.update_layout(
-                height=400,
-                title=dict(text="최근 30일 주가 추이", font=dict(size=30, color="black", family="Arial Black")),
+                height=500,
+                title=dict(text="최근 30일 주가 추이", font=dict(size=36, color="black", family="Arial Black")),
                 xaxis_title="날짜",
                 yaxis_title="주가 ($)",
                 hovermode="x unified",
+                hoverlabel=dict(bgcolor="white", font_size=24),
                 template="plotly_white",
-                font=dict(size=24, color="black", family="Arial Black")
+                font=dict(size=28, color="black", family="Arial Black")
             )
             fig_recent.update_xaxes(
                 rangebreaks=[dict(bounds=["sat", "mon"])],  # 주말 제외
                 showgrid=True, gridwidth=1, gridcolor='lightgrey',
-                title_font=dict(size=28), tickfont=dict(size=24)
+                title_font=dict(size=32), tickfont=dict(size=28)
             )
             fig_recent.update_yaxes(showgrid=True, gridwidth=1, gridcolor='lightgrey',
-                                    title_font=dict(size=28), tickfont=dict(size=24))
+                                    title_font=dict(size=32), tickfont=dict(size=28))
             st.plotly_chart(fig_recent, use_container_width=True)
         
         with col2:
             st.markdown('<div class="subsection-title">주가 예측 결과</div>', unsafe_allow_html=True)
             next_day_prediction = predictions[0]
             delta = next_day_prediction - current_price
-            st.markdown(f"<h3 style='font-size: 28px; font-weight: bold;'>다음 거래일 예상 가격: ${next_day_prediction:.2f} (변화: {delta:.2f})</h3>", unsafe_allow_html=True)
+            st.markdown(f"<h3 style='font-size: 32px; font-weight: bold;'>다음 거래일 예상 가격: ${next_day_prediction:.2f} (변화: {delta:.2f})</h3>", unsafe_allow_html=True)
             
             if delta > 0:
-                st.markdown(f"<h3 style='font-size: 28px; font-weight: bold; color: green; background-color: #e6ffe6; padding: 10px;'>주가가 상승할 것으로 예상됩니다.</h3>", unsafe_allow_html=True)
+                st.markdown(f"<h3 style='font-size: 32px; font-weight: bold; color: green; background-color: #e6ffe6; padding: 15px;'>주가가 상승할 것으로 예상됩니다.</h3>", unsafe_allow_html=True)
             else:
-                st.markdown(f"<h3 style='font-size: 28px; font-weight: bold; color: red; background-color: #ffe6e6; padding: 10px;'>주가가 하락할 것으로 예상됩니다.</h3>", unsafe_allow_html=True)
+                st.markdown(f"<h3 style='font-size: 32px; font-weight: bold; color: red; background-color: #ffe6e6; padding: 15px;'>주가가 하락할 것으로 예상됩니다.</h3>", unsafe_allow_html=True)
         
         # 주가 예측 그래프 (크기 및 색상 조정)
         st.markdown('<div class="subsection-title">주가 예측 그래프</div>', unsafe_allow_html=True)
@@ -459,20 +476,21 @@ def prediction():
         fig.add_trace(go.Scatter(x=prediction_dates, y=predictions, name='예측 주가',
                                  line=dict(color='#FF4136', width=3)))
         fig.add_trace(go.Scatter(x=prediction_dates, y=[monday_price] + [None]*4, name='실제 주가 (월요일)',
-                                 mode='markers', marker=dict(color='#0074D9', size=12)))
+                                 mode='markers', marker=dict(color='#0074D9', size=16)))
         fig.update_layout(
-            height=500,
-            title=dict(text="주가 예측 vs 실제 주가 (월-금)", font=dict(size=30, color="black", family="Arial Black")),
+            height=600,
+            title=dict(text="주가 예측 vs 실제 주가 (월-금)", font=dict(size=36, color="black", family="Arial Black")),
             xaxis_title="요일",
             yaxis_title="주가 ($)",
             hovermode="x unified",
+            hoverlabel=dict(bgcolor="white", font_size=28),
             template="plotly_white",
-            font=dict(size=24, color="black", family="Arial Black")
+            font=dict(size=28, color="black", family="Arial Black")
         )
         fig.update_xaxes(showgrid=True, gridwidth=1, gridcolor='lightgrey',
-                         title_font=dict(size=28), tickfont=dict(size=24))
+                         title_font=dict(size=32), tickfont=dict(size=28))
         fig.update_yaxes(showgrid=True, gridwidth=1, gridcolor='lightgrey',
-                         title_font=dict(size=28), tickfont=dict(size=24))
+                         title_font=dict(size=32), tickfont=dict(size=28))
         st.plotly_chart(fig, use_container_width=True)
 
 # 메인 앱 로직
